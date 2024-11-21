@@ -59,4 +59,5 @@ jobs:
       with:
         name: last-successful-commit
         path: .last-successful-commit
+        include-hidden-files: true
 
