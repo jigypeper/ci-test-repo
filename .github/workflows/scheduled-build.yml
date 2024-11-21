@@ -15,7 +15,7 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Download previous commit state
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: last-successful-commit
       continue-on-error: true  # Proceed even if the artifact is missing
@@ -51,7 +51,7 @@ jobs:
 
     - name: Upload commit state
       if: steps.check_changes.outputs.build_needed == 'true'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: last-successful-commit
         include-hidden-files: true
