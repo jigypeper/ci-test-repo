@@ -1,0 +1,66 @@
+name: Scheduled Build if Main Changes
+
+on:
+  schedule:
+    # Runs every 5 minutes UTC
+    - cron: '5 * * * *'
+
+jobs:
+  check-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Checkout the repository
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Step 2: Get the latest commit hash of main
+    - name: Get latest commit on main
+      id: get_latest_commit
+      run: echo "LATEST_COMMIT=$(git rev-parse origin/main)" >> $GITHUB_ENV
+
+    # Step 3: Compare commit hashes
+    - name: Check if main has new commits
+      id: check_changes
+      run: |
+        PREVIOUS_COMMIT=$(cat .last-successful-commit || echo "")
+        echo "Previous commit: $PREVIOUS_COMMIT"
+        echo "Latest commit: $LATEST_COMMIT"
+
+        if [ "$PREVIOUS_COMMIT" = "$LATEST_COMMIT" ]; then
+          echo "No changes on main branch. Skipping build."
+          echo "build_needed=false" >> $GITHUB_ENV
+        else
+          echo "Changes detected on main branch. Proceeding with build."
+          echo "build_needed=true" >> $GITHUB_ENV
+        fi
+
+    # Step 4: Run the build if needed
+    - name: Run Build
+      if: env.build_needed == 'true'
+      run: |
+        echo "Running build process..."
+        # Your build commands go here
+
+        # Save the commit hash for the next run
+        echo $LATEST_COMMIT > .last-successful-commit
+
+    # Step 5: Save the .last-successful-commit file for the next workflow run
+    - name: Upload commit state
+      if: env.build_needed == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: last-successful-commit
+        path: .last-successful-commit
+
+  save-commit-state:
+    if: env.build_needed == 'false'
+    needs: check-and-build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download previous state
+      uses: actions/download-artifact@v4
+      with:
+        name: last-successful-commit
+    - name: Confirm no changes
+      run: echo "No changes, workflow concluded."
