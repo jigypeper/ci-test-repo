@@ -11,27 +11,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # Step 1: Checkout the repository
     - name: Checkout code
       uses: actions/checkout@v3
 
-    # Step 2: Download the previous commit state
     - name: Download previous commit state
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v3
       with:
         name: last-successful-commit
-        path: .last-successful-commit
+        path: .
+      continue-on-error: true  # Proceed even if the artifact is missing
 
-    # Step 3: Ensure .last-successful-commit exists and get previous commit
-    - name: Check if main has new commits
-      id: check_changes
+    - name: Ensure previous commit exists
       run: |
-        # Ensure the .last-successful-commit file exists
+        # Create fallback if artifact is missing
         if [ ! -f .last-successful-commit ]; then
           echo "No previous commit found, creating fallback."
           echo "" > .last-successful-commit
         fi
 
+    - name: Compare commits
+      id: check_changes
+      run: |
         PREVIOUS_COMMIT=$(cat .last-successful-commit)
         LATEST_COMMIT=$(git rev-parse origin/main)
 
@@ -44,22 +44,17 @@ jobs:
           echo "build_needed=true" >> $GITHUB_OUTPUT
         fi
 
-    # Step 4: Run the build if needed
     - name: Run Build
       if: steps.check_changes.outputs.build_needed == 'true'
       run: |
         echo "Running build process..."
-        # Your build commands go here
-
-        # Save the commit hash for the next run
         echo "$(git rev-parse origin/main)" > .last-successful-commit
 
-    # Step 5: Upload the updated commit state for the next workflow run
     - name: Upload commit state
       if: steps.check_changes.outputs.build_needed == 'true'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v3
       with:
         name: last-successful-commit
-        path: .last-successful-commit
+        path: .last-successful-commit        
         include-hidden-files: true
 
