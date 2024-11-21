@@ -12,10 +12,10 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Download previous commit state
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v3
       with:
         name: last-successful-commit
       continue-on-error: true  # Proceed even if the artifact is missing
@@ -54,5 +54,6 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: last-successful-commit
+        path: .last-successful-commit        
         include-hidden-files: true
 
