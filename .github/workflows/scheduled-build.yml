@@ -20,7 +20,7 @@ jobs:
       uses: actions/download-artifact@v3
       with:
         name: last-successful-commit
-        path: .
+        path: .last-successful-commit
 
     # Step 3: Ensure .last-successful-commit exists and get previous commit
     - name: Check if main has new commits
