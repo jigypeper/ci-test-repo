@@ -3,7 +3,7 @@ name: Scheduled Build if Main Changes
 on:
   schedule:
     # Runs every 5 minutes UTC
-    - cron: '5 * * * *'
+    - cron: '*/5 * * * *'
 
 jobs:
   check-and-build:
