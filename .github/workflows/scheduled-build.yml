@@ -18,22 +18,22 @@ jobs:
     # Step 2: Get the latest commit hash of main
     - name: Get latest commit on main
       id: get_latest_commit
-      run: echo "::set-output name=latest_commit::$(git rev-parse origin/main)"
+      run: echo "latest_commit=$(git rev-parse origin/main)" >> $GITHUB_OUTPUT
 
     # Step 3: Compare commit hashes
     - name: Check if main has new commits
       id: check_changes
       run: |
         PREVIOUS_COMMIT=$(cat .last-successful-commit 2>/dev/null || echo "")
-        LATEST_COMMIT=${{ steps.get_latest_commit.outputs.latest_commit }}
+        LATEST_COMMIT="${{ steps.get_latest_commit.outputs.latest_commit }}"
 
         echo "Previous commit: $PREVIOUS_COMMIT"
         echo "Latest commit: $LATEST_COMMIT"
 
         if [ "$PREVIOUS_COMMIT" = "$LATEST_COMMIT" ]; then
-          echo "::set-output name=build_needed::false"
+          echo "build_needed=false" >> $GITHUB_OUTPUT
         else
-          echo "::set-output name=build_needed::true"
+          echo "build_needed=true" >> $GITHUB_OUTPUT
         fi
 
     # Step 4: Run the build if needed
