@@ -47,7 +47,7 @@ jobs:
     - name: Ensure previous commit exists
       run: |
         # Create fallback if artifact is missing
-        if [ ! -f .last-successful-commit ]; then
+        if [ ! -f last-successful-commit/.last-successful-commit ]; then
           echo "No previous commit found, creating fallback."
           echo "" > .last-successful-commit
         fi
