@@ -46,12 +46,14 @@ jobs:
 
     - name: Ensure previous commit exists
       run: |
-        # Create fallback if artifact is missing
+        # Check if the artifact file exists in the subdirectory
         if [ ! -f last-successful-commit/.last-successful-commit ]; then
           echo "No previous commit found, creating fallback."
           echo "" > .last-successful-commit
+        else
+          # Move the artifact file to the root directory
+          mv last-successful-commit/.last-successful-commit .last-successful-commit
         fi
-
     - name: Compare commits
       id: check_changes
       run: |
