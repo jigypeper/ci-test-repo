@@ -23,9 +23,9 @@ jobs:
     - name: Ensure previous commit exists
       run: |
         # Create fallback if artifact is missing
-        if [ ! -f last-successful-commit ]; then
+        if [ ! -f .last-successful-commit ]; then
           echo "No previous commit found, creating fallback."
-          echo "" > last-successful-commit
+          echo "" > .last-successful-commit
         fi
 
     - name: Compare commits
@@ -54,6 +54,6 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: last-successful-commit
-        path: last-successful-commit        
+        path: .last-successful-commit        
         include-hidden-files: true
 
