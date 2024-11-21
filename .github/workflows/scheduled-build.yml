@@ -17,11 +17,10 @@ jobs:
 
     # Step 2: Download the previous commit state
     - name: Download previous commit state
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       with:
         name: last-successful-commit
-        path: .last-successful-commit
-        include-hidden-files: true
+        path: .
 
     # Step 3: Ensure .last-successful-commit exists and get previous commit
     - name: Check if main has new commits
@@ -58,7 +57,7 @@ jobs:
     # Step 5: Upload the updated commit state for the next workflow run
     - name: Upload commit state
       if: steps.check_changes.outputs.build_needed == 'true'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: last-successful-commit
         path: .last-successful-commit
