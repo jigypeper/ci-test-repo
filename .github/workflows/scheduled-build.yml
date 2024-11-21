@@ -20,11 +20,17 @@ jobs:
       id: get_latest_commit
       run: echo "latest_commit=$(git rev-parse origin/main)" >> $GITHUB_OUTPUT
 
-    # Step 3: Compare commit hashes
+    # Step 3: Compare commit hashes and create fallback if necessary
     - name: Check if main has new commits
       id: check_changes
       run: |
-        PREVIOUS_COMMIT=$(cat .last-successful-commit 2>/dev/null || echo "")
+        # Ensure the .last-successful-commit file exists
+        if [ ! -f .last-successful-commit ]; then
+          echo "No previous commit found, creating fallback."
+          echo "" > .last-successful-commit
+        fi
+
+        PREVIOUS_COMMIT=$(cat .last-successful-commit)
         LATEST_COMMIT="${{ steps.get_latest_commit.outputs.latest_commit }}"
 
         echo "Previous commit: $PREVIOUS_COMMIT"
@@ -46,10 +52,11 @@ jobs:
         # Save the commit hash for the next run
         echo "${{ steps.get_latest_commit.outputs.latest_commit }}" > .last-successful-commit
 
-    # Step 5: Save the .last-successful-commit file for the next workflow run
+    # Step 5: Conditionally upload .last-successful-commit
     - name: Upload commit state
       if: steps.check_changes.outputs.build_needed == 'true'
       uses: actions/upload-artifact@v3
       with:
         name: last-successful-commit
         path: .last-successful-commit
+
