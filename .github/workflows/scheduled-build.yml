@@ -17,7 +17,7 @@ jobs:
     - name: Download previous commit state
       uses: actions/download-artifact@v4
       with:
-        name: last-successful-commit
+        name:
         github-token: ${{ secrets.GH_PAT }}
       continue-on-error: true  # Proceed even if the artifact is missing
 
