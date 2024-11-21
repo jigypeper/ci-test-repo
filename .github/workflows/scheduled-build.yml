@@ -15,12 +15,14 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    # Step 2: Get the latest commit hash of main
-    - name: Get latest commit on main
-      id: get_latest_commit
-      run: echo "latest_commit=$(git rev-parse origin/main)" >> $GITHUB_OUTPUT
+    # Step 2: Download the previous commit state
+    - name: Download previous commit state
+      uses: actions/download-artifact@v3
+      with:
+        name: last-successful-commit
+        path: .
 
-    # Step 3: Compare commit hashes and create fallback if necessary
+    # Step 3: Ensure .last-successful-commit exists and get previous commit
     - name: Check if main has new commits
       id: check_changes
       run: |
@@ -31,7 +33,7 @@ jobs:
         fi
 
         PREVIOUS_COMMIT=$(cat .last-successful-commit)
-        LATEST_COMMIT="${{ steps.get_latest_commit.outputs.latest_commit }}"
+        LATEST_COMMIT=$(git rev-parse origin/main)
 
         echo "Previous commit: $PREVIOUS_COMMIT"
         echo "Latest commit: $LATEST_COMMIT"
@@ -50,12 +52,12 @@ jobs:
         # Your build commands go here
 
         # Save the commit hash for the next run
-        echo "${{ steps.get_latest_commit.outputs.latest_commit }}" > .last-successful-commit
+        echo "$(git rev-parse origin/main)" > .last-successful-commit
 
-    # Step 5: Conditionally upload .last-successful-commit
+    # Step 5: Upload the updated commit state for the next workflow run
     - name: Upload commit state
       if: steps.check_changes.outputs.build_needed == 'true'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v3
       with:
         name: last-successful-commit
         path: .last-successful-commit
