@@ -7,6 +7,30 @@ on:
     - cron: '*/5 * * * *'
 
 jobs:
+  get-previous-run-id:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Get Previous Run ID
+      id: get_run
+      env:
+        GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+      run: |
+        # Fetch workflow runs using the GitHub API
+        response=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+          "https://api.github.com/repos/${{ github.repository }}/actions/workflows/${{ github.workflow }}/runs?status=completed&per_page=2")
+        
+        # Extract the second latest run ID (previous run)
+        previous_run_id=$(echo "$response" | jq -r '.workflow_runs[1].id')
+        
+        if [ "$previous_run_id" == "null" ]; then
+          echo "No previous run found. Exiting."
+          exit 1
+        fi
+
+        echo "Previous Run ID: $previous_run_id"
+        echo "run_id=$previous_run_id" >> $GITHUB_OUTPUT
+        
   check-and-build:
     runs-on: ubuntu-latest
 
@@ -19,6 +43,7 @@ jobs:
       with:
         name:
         github-token: ${{ secrets.GH_PAT }}
+        run-id: ${{ needs.get-previous-run-id.outputs.run_id }}
       continue-on-error: true  # Proceed even if the artifact is missing
 
     - name: Ensure previous commit exists
