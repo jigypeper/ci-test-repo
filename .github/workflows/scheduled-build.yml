@@ -18,6 +18,7 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name: last-successful-commit
+        github-token: ${{ secrets.GH_PAT }}
       continue-on-error: true  # Proceed even if the artifact is missing
 
     - name: Ensure previous commit exists
