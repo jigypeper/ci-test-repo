@@ -18,7 +18,6 @@ jobs:
       uses: actions/download-artifact@v3
       with:
         name: last-successful-commit
-        path: .
       continue-on-error: true  # Proceed even if the artifact is missing
 
     - name: Ensure previous commit exists
@@ -55,6 +54,5 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: last-successful-commit
-        path: .last-successful-commit        
         include-hidden-files: true
 
