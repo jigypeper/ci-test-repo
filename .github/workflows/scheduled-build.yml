@@ -21,6 +21,7 @@ jobs:
       with:
         name: last-successful-commit
         path: .last-successful-commit
+        include-hidden-files: true
 
     # Step 3: Ensure .last-successful-commit exists and get previous commit
     - name: Check if main has new commits
