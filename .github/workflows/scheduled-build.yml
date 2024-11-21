@@ -39,6 +39,7 @@ jobs:
       uses: actions/download-artifact@v4
       with:
         name:
+        path: .
         github-token: ${{ secrets.GH_PAT }}
         run-id: ${{ steps.get_run.outputs.run_id }}
       continue-on-error: true  # Proceed even if the artifact is missing
