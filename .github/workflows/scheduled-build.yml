@@ -69,6 +69,12 @@ jobs:
           echo "build_needed=true" >> $GITHUB_OUTPUT
         fi
 
+    - name: Set build needed for manual triggers
+      if: ${{ github.event_name == 'workflow_dispatch' }}
+      run: |
+        echo "Manual trigger detected. Forcing build."
+        echo "build_needed=true" >> $GITHUB_OUTPUT
+
     - name: Run Build
       if: steps.check_changes.outputs.build_needed == 'true'
       run: |
