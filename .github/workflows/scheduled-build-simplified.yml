@@ -1,4 +1,4 @@
-name: Scheduled Build if Main Changes
+name: Scheduled Build if Main Changed Simpler
 
 on:
   workflow_dispatch:
