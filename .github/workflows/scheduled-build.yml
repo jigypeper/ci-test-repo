@@ -82,7 +82,6 @@ jobs:
         echo "$(git rev-parse origin/main)" > .last-successful-commit
 
     - name: Upload commit state
-      if: steps.check_changes.outputs.build_needed == 'true'
       uses: actions/upload-artifact@v4
       with:
         name: last-successful-commit
