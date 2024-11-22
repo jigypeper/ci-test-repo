@@ -31,6 +31,7 @@ jobs:
         else
           echo "No changes detected. Skipping build."
           echo "build_needed=false" >> $GITHUB_OUTPUT
+        fi
 
     - name: Run Build
       if: ${{ steps.check-changes.outputs.build_needed == 'true' }}
