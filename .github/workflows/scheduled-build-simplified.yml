@@ -6,7 +6,7 @@ on:
     - cron: '*/5 * * * *'
 
 jobs:
-  check-and-build:
+  check:
     runs-on: ubuntu-latest
 
     steps:
@@ -32,7 +32,7 @@ jobs:
       continue-on-error: true
 
     - name: Determine if Build is Needed
-      id: check-changes
+      id: set-decision
       run: |
         if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
           echo ${{ steps.changed-files.outputs.all_changed_files }}
@@ -41,10 +41,7 @@ jobs:
         elif [ "${{ steps.changed-files.outcome }}" == "failure" ]; then
           echo "No new changes detected or only one commit exists. Skipping build."
           echo "build_needed=false" >> $GITHUB_OUTPUT
-        elif [ -z "${{ steps.changed-files.outputs.all_changed_files }}" ]; then
-          echo "No changes detected. Skipping build."
-          echo "build_needed=false" >> $GITHUB_OUTPUT
-        elif [ "${{ steps.changed-files.outputs.all_changed_files }}" != "[]" ]; then
+        elif [ "${{ steps.changed-files.outputs.all_changed_files }}" != "" ]; then
           echo ${{ steps.changed-files.outputs.all_changed_files }}
           echo "Changes detected. Build needed."
           echo "build_needed=true" >> $GITHUB_OUTPUT
@@ -52,8 +49,13 @@ jobs:
           echo "No changes detected. Skipping build."
           echo "build_needed=false" >> $GITHUB_OUTPUT
         fi
-
+      outputs:
+        build_needed: ${{ steps.set-decision.outputs.build_needed }}
+  build:
+    runs-on: ubuntu-latest
+    needs: check
+    steps:
     - name: Run Build
-      if: ${{ steps.check-changes.outputs.build_needed == 'true' }}
+      if: needs.check.outputs.build_needed == 'true'
       run: |
         echo "Running build process..."
