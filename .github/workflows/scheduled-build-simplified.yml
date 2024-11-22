@@ -33,9 +33,11 @@ jobs:
       id: check-changes
       run: |
         if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          echo ${{ steps.changed-files.outputs.all_changed_files }}
           echo "Manual trigger detected. Forcing build."
           echo "build_needed=true" >> $GITHUB_OUTPUT
         elif [ "${{ steps.changed-files.outputs.all_changed_files }}" != "[]" ]; then
+          echo ${{ steps.changed-files.outputs.all_changed_files }}
           echo "Changes detected. Build needed."
           echo "build_needed=true" >> $GITHUB_OUTPUT
         else
