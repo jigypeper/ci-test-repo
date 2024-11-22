@@ -52,8 +52,7 @@ jobs:
           echo "No changes detected. Skipping build."
           echo "build_needed=false" >> $GITHUB_OUTPUT
         fi
-      outputs:
-        build_needed: ${{ steps.set-decision.outputs.build_needed }}
+
   build:
     runs-on: ubuntu-latest
     needs: check
