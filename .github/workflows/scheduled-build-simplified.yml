@@ -26,6 +26,7 @@ jobs:
       uses: tj-actions/changed-files@v45
       with:
         token: ${{ secrets.GH_PAT }}
+        fetch_depth: "100"
         since: ${{ env.FIVE_MINS_AGO }}
         until: ${{ env.NOW }}
 
