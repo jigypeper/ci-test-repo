@@ -27,7 +27,7 @@ jobs:
       with:
         token: ${{ secrets.GH_PAT }}
         fetch_depth: "100"
-        since: ${{ env.ONE_HOUR_AGO }}
+        since: ${{ env.FIFTEEN_MINS_AGO }}
         until: ${{ env.NOW }}
       continue-on-error: true
 
