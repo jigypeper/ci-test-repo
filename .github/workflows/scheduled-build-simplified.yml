@@ -17,9 +17,9 @@ jobs:
       id: set-timestamps
       run: |
         NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-        FIVE_MINS_AGO=$(date -u -d '-1 hours' +"%Y-%m-%dT%H:%M:%SZ")
+        FIFTEEN_MINS_AGO=$(date -u -d '-15 minutes' +"%Y-%m-%dT%H:%M:%SZ")
         echo "NOW=$NOW" >> $GITHUB_ENV
-        echo "ONE_HOUR_AGO=$ONE_HOUR_AGO" >> $GITHUB_ENV
+        echo "FIFTEEN_MINS_AGO=$FIFTEEN_MINS_AGO" >> $GITHUB_ENV
 
     - name: Determine Changed Files
       id: changed-files
