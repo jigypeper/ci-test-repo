@@ -56,8 +56,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     needs: check
+    if: needs.check.outputs.build_needed == 'true'
     steps:
     - name: Run Build
-      if: needs.check.outputs.build_needed == 'true'
       run: |
         echo "Running build process..."
