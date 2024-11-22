@@ -13,11 +13,21 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Set Timestamps
+      id: set-timestamps
+      run: |
+        NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        FIVE_MINS_AGO=$(date -u -d '-5 minutes' +"%Y-%m-%dT%H:%M:%SZ")
+        echo "NOW=$NOW" >> $GITHUB_ENV
+        echo "FIVE_MINS_AGO=$FIVE_MINS_AGO" >> $GITHUB_ENV
+
     - name: Determine Changed Files
       id: changed-files
       uses: tj-actions/changed-files@v45
       with:
         token: ${{ secrets.GH_PAT }}
+        since: ${{ env.FIVE_MINS_AGO }}
+        until: ${{ env.NOW }}
 
     - name: Determine if Build is Needed
       id: check-changes
