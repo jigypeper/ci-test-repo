@@ -29,6 +29,7 @@ jobs:
         fetch_depth: "100"
         since: ${{ env.FIVE_MINS_AGO }}
         until: ${{ env.NOW }}
+      continue-on-error: true
 
     - name: Determine if Build is Needed
       id: check-changes
@@ -37,6 +38,9 @@ jobs:
           echo ${{ steps.changed-files.outputs.all_changed_files }}
           echo "Manual trigger detected. Forcing build."
           echo "build_needed=true" >> $GITHUB_OUTPUT
+        elif [ "${{ steps.changed-files.outcome }}" == "failure" ]; then
+          echo "No new changes detected or only one commit exists. Skipping build."
+          echo "build_needed=false" >> $GITHUB_OUTPUT
         elif [ "${{ steps.changed-files.outputs.all_changed_files }}" != "[]" ]; then
           echo ${{ steps.changed-files.outputs.all_changed_files }}
           echo "Changes detected. Build needed."
