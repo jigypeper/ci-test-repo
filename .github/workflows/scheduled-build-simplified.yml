@@ -1,0 +1,38 @@
+name: Scheduled Build if Main Changes
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/5 * * * *'
+
+jobs:
+  check-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Determine Changed Files
+      id: changed-files
+      uses: tj-actions/changed-files@v36
+      with:
+        token: ${{ secrets.GH_PAT }}
+
+    - name: Determine if Build is Needed
+      id: check-changes
+      run: |
+        if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          echo "Manual trigger detected. Forcing build."
+          echo "build_needed=true" >> $GITHUB_OUTPUT
+        elif [ "${{ steps.changed-files.outputs.all_changed_files }}" != "[]" ]; then
+          echo "Changes detected. Build needed."
+          echo "build_needed=true" >> $GITHUB_OUTPUT
+        else
+          echo "No changes detected. Skipping build."
+          echo "build_needed=false" >> $GITHUB_OUTPUT
+
+    - name: Run Build
+      if: ${{ steps.check-changes.outputs.build_needed == 'true' }}
+      run: |
+        echo "Running build process..."
