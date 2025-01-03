@@ -16,13 +16,17 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Determine Base SHA
+      id: base-sha
+      run: echo "BASE_SHA=$(git rev-parse origin/main)" >> $GITHUB_ENV
+      
     - name: Determine Changed Files
       id: changed-files
       uses: tj-actions/changed-files@v45
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         fetch_depth: "100"
-        base: main
+        base_sha: ${{ env.BASE_SHA }}
       continue-on-error: true
 
     - name: Determine if Build is Needed
