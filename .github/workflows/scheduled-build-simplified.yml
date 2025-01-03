@@ -3,7 +3,7 @@ name: Scheduled Build if Main Changed Simpler
 on:
   workflow_dispatch:
   schedule:
-    - cron: '30 10 * * *'
+    - cron: '05 * * * *'
 
 jobs:
   check:
@@ -16,37 +16,27 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set Timestamps
-      id: set-timestamps
-      run: |
-        NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-        FIFTEEN_MINS_AGO=$(date -u -d '-15 minutes' +"%Y-%m-%dT%H:%M:%SZ")
-        echo "NOW=$NOW" >> $GITHUB_ENV
-        echo "FIFTEEN_MINS_AGO=$FIFTEEN_MINS_AGO" >> $GITHUB_ENV
-
     - name: Determine Changed Files
       id: changed-files
       uses: tj-actions/changed-files@v45
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         fetch_depth: "100"
-        since: ${{ env.FIFTEEN_MINS_AGO }}
-        until: ${{ env.NOW }}
+        base: main
       continue-on-error: true
 
     - name: Determine if Build is Needed
       id: set-decision
       run: |
         if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-          echo ${{ steps.changed-files.outputs.all_changed_files }}
           echo "Manual trigger detected. Forcing build."
           echo "build_needed=true" >> $GITHUB_OUTPUT
         elif [ "${{ steps.changed-files.outcome }}" == "failure" ]; then
-          echo "No new changes detected or only one commit exists. Skipping build."
-          echo "build_needed=false" >> $GITHUB_OUTPUT
+          echo "Failure in detecting changes. Defaulting to build."
+          echo "build_needed=true" >> $GITHUB_OUTPUT
         elif [ "${{ steps.changed-files.outputs.all_changed_files }}" != "" ]; then
-          echo ${{ steps.changed-files.outputs.all_changed_files }}
-          echo "Changes detected. Build needed."
+          echo "Changes detected: ${{ steps.changed-files.outputs.all_changed_files }}"
+          echo "Build needed."
           echo "build_needed=true" >> $GITHUB_OUTPUT
         else
           echo "No changes detected. Skipping build."
