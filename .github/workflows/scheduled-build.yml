@@ -6,84 +6,97 @@ on:
     - cron: '30 10 * * *'
 
 jobs:
-        
-  check-and-build:
+  check:
     runs-on: ubuntu-latest
 
+    outputs:
+      build_needed: ${{ steps.check_changes.outputs.build_needed }}
+
     steps:
-    - name: Get Previous Run ID
-      id: get_run
+    - name: Get Previous Workflow Run
+      id: get_previous_run
       env:
         GITHUB_TOKEN: ${{ secrets.GH_PAT }}
       run: |
-        # Fetch workflow runs using the GitHub API
         response=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
-          "https://api.github.com/repos/${{ github.repository }}/actions/workflows/scheduled-build.yml/runs?status=completed&per_page=2")
-        
-        # Extract the second latest run ID (previous run)
-        previous_run_id=$(echo "$response" | jq -r '.workflow_runs[1].id')
-        
-        if [ "$previous_run_id" == "null" ]; then
+          "https://api.github.com/repos/${{ github.repository }}/actions/runs?status=completed&per_page=1")
+        run_id=$(echo "$response" | jq -r '.workflow_runs[0].id')
+
+        if [ "$run_id" == "null" ]; then
           echo "No previous run found. Exiting."
-          exit 1
+          echo "previous_run_id=" >> $GITHUB_OUTPUT
+        else
+          echo "Found previous run ID: $run_id"
+          echo "previous_run_id=$run_id" >> $GITHUB_OUTPUT
         fi
 
-        echo "Previous Run ID: $previous_run_id"
-        echo "run_id=$previous_run_id" >> $GITHUB_OUTPUT
-        
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Download previous commit state
+    - name: Download Previous Commit State
+      if: ${{ steps.get_previous_run.outputs.previous_run_id }}
       uses: actions/download-artifact@v4
       with:
-        name:
+        name: last-successful-commit
         path: .
-        github-token: ${{ secrets.GH_PAT }}
-        run-id: ${{ steps.get_run.outputs.run_id }}
-      continue-on-error: true  # Proceed even if the artifact is missing
+        run-id: ${{ steps.get_previous_run.outputs.previous_run_id }}
+      continue-on-error: true
 
-    - name: Ensure previous commit exists
+    - name: Get Previous Commit
+      id: previous_commit
       run: |
-        # Check if the artifact file exists in the subdirectory
-        if [ ! -f last-successful-commit/.last-successful-commit ]; then
-          echo "No previous commit found, creating fallback."
-          echo "" > .last-successful-commit
+        if [ -f .last-successful-commit ]; then
+          PREVIOUS_COMMIT=$(cat .last-successful-commit)
         else
-          # Move the artifact file to the root directory
-          mv last-successful-commit/.last-successful-commit .last-successful-commit
+          PREVIOUS_COMMIT=""
         fi
-    - name: Compare commits
+        echo "Previous Commit: $PREVIOUS_COMMIT"
+        echo "previous_commit=$PREVIOUS_COMMIT" >> $GITHUB_OUTPUT
+
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Compare Commits
       id: check_changes
       run: |
-        PREVIOUS_COMMIT=$(cat .last-successful-commit)
         LATEST_COMMIT=$(git rev-parse origin/main)
+        echo "Latest Commit: $LATEST_COMMIT"
 
-        echo "Previous commit: $PREVIOUS_COMMIT"
-        echo "Latest commit: $LATEST_COMMIT"
-
-        if [ "$PREVIOUS_COMMIT" = "$LATEST_COMMIT" ]; then
+        if [ "${{ steps.previous_commit.outputs.previous_commit }}" = "$LATEST_COMMIT" ]; then
+          echo "No changes detected. Skipping build."
           echo "build_needed=false" >> $GITHUB_OUTPUT
         else
+          echo "Changes detected. Build needed."
           echo "build_needed=true" >> $GITHUB_OUTPUT
         fi
 
-    - name: Set build needed for manual triggers
+    - name: Override for Manual Triggers
       if: ${{ github.event_name == 'workflow_dispatch' }}
       run: |
         echo "Manual trigger detected. Forcing build."
         echo "build_needed=true" >> $GITHUB_OUTPUT
 
+  build:
+    runs-on: ubuntu-latest
+    needs: check
+    if: needs.check.outputs.build_needed == 'true'
+
+    steps:
     - name: Run Build
-      if: steps.check_changes.outputs.build_needed == 'true'
       run: |
         echo "Running build process..."
+        # Your build logic here
+
+  save-state:
+    runs-on: ubuntu-latest
+    needs: [check, build]
+    if: needs.check.outputs.build_needed == 'true'
+
+    steps:
+    - name: Save Last Commit State
+      run: |
         echo "$(git rev-parse origin/main)" > .last-successful-commit
 
-    - name: Upload commit state
+    - name: Upload Commit State
       uses: actions/upload-artifact@v4
       with:
         name: last-successful-commit
-        path: .last-successful-commit        
-        include-hidden-files: true
+        path: .last-successful-commit
 
