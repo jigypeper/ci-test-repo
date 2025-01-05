@@ -49,6 +49,7 @@ jobs:
         name: last-successful-commit
         path: .
         run-id: ${{ steps.get_previous_run.outputs.previous_run_id }}
+        github-token: ${{ secrets.GH_PAT }}
       continue-on-error: true
 
     - name: Get Previous Commit
