@@ -3,7 +3,7 @@ name: Scheduled Build if Main Changed Simpler
 on:
   workflow_dispatch:
   schedule:
-    - cron: '05 * * * *'
+    - cron: '05 10 * * *'
 
 jobs:
   check:
