@@ -9,7 +9,7 @@ on:
         type: boolean
         default: false
   schedule:
-    - cron: '*/5 * * * *'  # Run every 5 minutes for testing
+    - cron: '5 10 * * *'  # Run every 5 minutes for testing
     # For production: '0 2 * * *'  # Run at 2 AM UTC daily
 
 jobs:
